@@ -51,6 +51,12 @@
   .headline-stats{display:flex;gap:14px;font-size:10px;color:var(--gris);flex-shrink:0;}
   .headline-stats b{color:var(--rouge);}
   @media (max-width:700px){.headline-stats{display:none;}}
+  .admin-badge{display:flex;align-items:center;gap:6px;background:rgba(63,214,111,.12);border:1px solid #3fd66f;color:#3fd66f;font-size:10px;font-weight:700;letter-spacing:.5px;padding:5px 10px;border-radius:100px;flex-shrink:0;}
+  .login-toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);background:#18181b;border:1px solid #3fd66f;color:#3fd66f;padding:10px 18px;border-radius:100px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;z-index:900;opacity:0;transition:opacity .3s ease, transform .3s ease;pointer-events:none;}
+  .login-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .login-toast svg{width:15px;height:15px;flex-shrink:0;}
+  .admin-badge svg{width:13px;height:13px;flex-shrink:0;}
+  @media (max-width:760px){.admin-badge span{display:none;}}
 
   header{position:sticky;top:0;z-index:100;background:var(--noir);}
   .masthead{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 5vw;gap:14px;border-bottom:1px solid var(--line);}
@@ -304,6 +310,7 @@
   <div class="loader-tag">Chargement du flux</div>
 </div>
 
+<div class="login-toast" id="loginToast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connexion réussie — vous êtes Admin</span></div>
 <div id="adminGate">
   <div class="login-card">
     <div class="login-logo">CASH <span class="accent" style="color:var(--rouge)">SUR TABLE</span></div>
@@ -364,6 +371,7 @@
     <div class="headline-fade" id="headlineFade"></div>
     <div class="headline-stats"><span><b id="statCount">0</b> vidéos</span><span><b id="statViews">0</b> vues</span><span><b id="statVisits">0</b> visites</span></div>
     <button id="installBtn" style="display:none;flex-shrink:0;background:var(--rouge);color:#fff;border:none;padding:6px 12px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.5px;">📲 Installer l'app</button>
+    <div class="admin-badge" id="adminBadge" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connecté en tant qu'Admin</span></div>
   </div>
   <div class="masthead">
     <div>
@@ -431,7 +439,10 @@
   <section class="view" id="view-admin">
     <div class="admin-wrap">
       <div class="admin-topbar">
-        <h1>Espace rédaction</h1>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <h1>Espace rédaction</h1>
+          <div class="admin-badge" style="display:flex;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connecté en tant qu'Admin</span></div>
+        </div>
         <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
       </div>
 
@@ -673,6 +684,24 @@
         <div class="admin-list" id="navOrderList"></div>
       </div>
       <div class="panel">
+        <h2>Identifiants de connexion admin</h2>
+        <div class="hint">Change l'email et le mot de passe utilisés pour accéder à cet espace admin. ⚠️ Cette protection reste basique (vérification côté navigateur) : elle décourage les visiteurs curieux mais ne remplace pas une vraie authentification serveur. Ne réutilisez pas un mot de passe important ailleurs.</div>
+        <div class="field">
+          <label>Email de connexion</label>
+          <input type="email" id="setAdminEmail" placeholder="admin@example.com">
+        </div>
+        <div class="field">
+          <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+          <input type="password" id="setAdminPw1" placeholder="••••••••">
+        </div>
+        <div class="field">
+          <label>Confirmer le nouveau mot de passe</label>
+          <input type="password" id="setAdminPw2" placeholder="••••••••">
+        </div>
+        <button type="button" class="btn-publish" id="saveCredsBtn">Mettre à jour les identifiants</button>
+        <div class="msg" id="credsMsg"></div>
+      </div>
+      <div class="panel">
         <h2>Identité du site</h2>
         <div class="hint">Ces informations sont affichées sur le site (sous-titre, réseaux sociaux, contact).</div>
         <div class="field">
@@ -757,10 +786,10 @@
 
 <script>
 (function(){
-  /* Identifiants de connexion — à modifier ici */
-  const ADMIN_EMAIL = 'admin@cgmail.com';
-  const ADMIN_PASSWORD = '2026';
-
+  /* Identifiants de connexion — modifiables depuis Admin > Réglages (valeurs ci-dessous = valeurs par défaut) */
+  let ADMIN_EMAIL = 'admin@cgmail.com';
+  let ADMIN_PASSWORD = '2026';
+  loadAdminCreds();
   const META_KEY = 'cst_videos';
   let videos = [];
   let articles = [];
@@ -840,6 +869,47 @@
     }
     btn.disabled = false;
   }
+  /* ============ IDENTIFIANTS ADMIN (modifiables depuis Réglages) — Supabase (table kv) ============ */
+  const CREDS_KEY = 'cst_admin_creds';
+  async function loadAdminCreds(){
+    try{
+      const raw = await storeGet(CREDS_KEY);
+      if(raw){
+        const creds = JSON.parse(raw);
+        if(creds.email) ADMIN_EMAIL = creds.email;
+        if(creds.password) ADMIN_PASSWORD = creds.password;
+      }
+    }catch(e){ console.error('loadAdminCreds', e); }
+  }
+  function renderCredsTab(){
+    document.getElementById('setAdminEmail').value = ADMIN_EMAIL;
+    document.getElementById('setAdminPw1').value = '';
+    document.getElementById('setAdminPw2').value = '';
+  }
+  document.getElementById('saveCredsBtn').addEventListener('click', async ()=>{
+    const msg = document.getElementById('credsMsg');
+    const newEmail = document.getElementById('setAdminEmail').value.trim();
+    const pw1 = document.getElementById('setAdminPw1').value;
+    const pw2 = document.getElementById('setAdminPw2').value;
+    if(!newEmail || !/^\S+@\S+\.\S+$/.test(newEmail)){
+      msg.textContent = 'Merci de renseigner un email valide.'; msg.className = 'msg err'; return;
+    }
+    if(pw1 || pw2){
+      if(pw1 !== pw2){ msg.textContent = 'Les deux mots de passe ne correspondent pas.'; msg.className = 'msg err'; return; }
+      if(pw1.length < 4){ msg.textContent = 'Le mot de passe doit faire au moins 4 caractères.'; msg.className = 'msg err'; return; }
+    }
+    const newPassword = pw1 || ADMIN_PASSWORD;
+    const ok = await storeSet(CREDS_KEY, JSON.stringify({ email:newEmail, password:newPassword }));
+    if(ok){
+      ADMIN_EMAIL = newEmail; ADMIN_PASSWORD = newPassword;
+      msg.textContent = 'Identifiants mis à jour.'; msg.className = 'msg ok';
+      renderCredsTab();
+    } else {
+      msg.textContent = "Échec de l'enregistrement — vérifie la table \"kv\" sur Supabase."; msg.className = 'msg err';
+    }
+    setTimeout(()=>{ msg.textContent=''; }, 3000);
+  });
+
   document.getElementById('checkVideoBucketBtn').addEventListener('click', testVideoBucket);
 
   /* ============ RÉGLAGES DU SITE (ordre des sections, identité) — Supabase (table kv) ============ */
@@ -1093,7 +1163,7 @@
       document.querySelectorAll('.admin-panel-group').forEach(p=>p.classList.remove('active'));
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
       if(btn.dataset.tab==='storage') renderStorageList();
-      if(btn.dataset.tab==='settings') renderSettingsTab();
+      if(btn.dataset.tab==='settings'){ renderSettingsTab(); renderCredsTab(); }
     });
   });
 
@@ -1126,6 +1196,11 @@
   function isLoggedIn(){
     return localStorage.getItem('cst_admin_session')==='1' || sessionStorage.getItem('cst_admin_session')==='1';
   }
+  function updateAdminBadge(){
+    const badge = document.getElementById('adminBadge');
+    if(badge) badge.style.display = isLoggedIn() ? 'flex' : 'none';
+  }
+  updateAdminBadge();
   function openGate(){
     document.getElementById('adminGate').classList.add('show');
     document.getElementById('loginErr').textContent='';
@@ -1163,9 +1238,13 @@
       sessionStorage.removeItem('cst_login_fails');
       sessionStorage.removeItem('cst_lock_until');
       (remember ? localStorage : sessionStorage).setItem('cst_admin_session','1');
+      updateAdminBadge();
       closeGate();
       document.getElementById('loginForm').reset();
       showView('admin');
+      const toast = document.getElementById('loginToast');
+      toast.classList.add('show');
+      setTimeout(()=> toast.classList.remove('show'), 2500);
     } else {
       const fails = Number(sessionStorage.getItem('cst_login_fails')||0) + 1;
       sessionStorage.setItem('cst_login_fails', String(fails));
@@ -1181,6 +1260,7 @@
   document.getElementById('logoutBtn').addEventListener('click', ()=>{
     localStorage.removeItem('cst_admin_session');
     sessionStorage.removeItem('cst_admin_session');
+    updateAdminBadge();
     showView('home');
   });
 
