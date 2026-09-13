@@ -93,11 +93,10 @@
   @media (max-width:900px){.founder-photo-front{right:20%;}}
   @media (max-width:760px){
     .founder-banner{flex-direction:column;text-align:left;padding-top:20px;margin-bottom:0;overflow:hidden;min-height:0;}
-    .founder-text{max-width:none;padding:10px 22px 18px;}
-    .founder-photos{position:relative;width:100%;height:190px;min-height:190px;flex:none;align-self:auto;display:flex;align-items:flex-end;justify-content:center;overflow:visible;}
-    .founder-photo-back,.founder-photo-front{position:relative;bottom:auto;right:auto;top:auto;left:auto;height:100%;max-width:55%;width:auto;object-fit:contain;}
-    .founder-photo-back{margin-right:-14px;}
-    .founder-photo-front{margin-left:-14px;}
+    .founder-text{max-width:none;padding:10px 22px 18px;position:relative;z-index:1;}
+    .founder-photos{position:relative;width:100%;height:400px;min-height:400px;flex:none;align-self:auto;display:flex;align-items:flex-end;justify-content:center;overflow:visible;margin-top:-70px;z-index:2;}
+    .founder-photo-back{display:none;}
+    .founder-photo-front{position:relative;bottom:auto;right:auto;top:auto;left:auto;height:100%;max-width:none;width:auto;object-fit:contain;margin:0 auto;}
   }
 
   /* ---- ESPACE BANNIÈRES (page d'accueil) ---- */
