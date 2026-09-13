@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASH SUR TABLE — Média</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CST">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="ambient-bg" aria-hidden="true">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+<div id="bubbleLayer" aria-hidden="true"></div>
+
+<div id="loader">
+  <div class="loader-word"><span>C</span><span>A</span><span>S</span><span>H</span></div>
+  <div class="loader-bar"></div>
+  <div class="loader-tag">Chargement du flux</div>
+</div>
+
+<div class="login-toast" id="loginToast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connexion réussie — vous êtes Admin</span></div>
+<div id="adminGate">
+  <div class="login-card">
+    <div class="login-logo">CASH <span class="accent" style="color:var(--rouge)">SUR TABLE</span></div>
+    <div class="login-sub">Espace rédaction</div>
+    <form id="loginForm">
+      <div class="field">
+        <label>Adresse e-mail</label>
+        <input type="email" id="loginEmail" placeholder="vous@cashsurtable.com" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" id="togglePw">Afficher</button>
+        </div>
+      </div>
+      <label class="remember"><input type="checkbox" id="rememberMe"> Rester connecté sur cet appareil</label>
+      <button type="submit" class="btn-publish">Se connecter</button>
+      <div class="gate-err" id="loginErr"></div>
+    </form>
+    <a href="#" class="gate-close" id="gateClose">Retour au site</a>
+  </div>
+</div>
+
+<div id="installGate" style="position:fixed;inset:0;background:rgba(10,10,11,.97);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div class="login-card" style="text-align:center;">
+    <div class="login-logo">📲 Installer l'app</div>
+    <div class="login-sub" style="margin-bottom:22px;">Sur iPhone / iPad</div>
+    <div style="text-align:left;font-size:13px;color:var(--blanc);line-height:1.9;">
+      1. Ouvre ce site dans <b>Safari</b> (pas Chrome).<br>
+      2. Appuie sur l'icône <b>Partager</b> (le carré avec la flèche vers le haut), en bas de l'écran.<br>
+      3. Fais défiler et choisis <b>« Sur l'écran d'accueil »</b>.<br>
+      4. Appuie sur <b>Ajouter</b> en haut à droite.
+    </div>
+    <a href="#" class="gate-close" id="installGateClose" style="margin-top:22px;">Fermer</a>
+  </div>
+</div>
+
+<div id="articleReader">
+  <div class="reader-wrap">
+    <a href="#" class="reader-close" id="readerClose">← Retour aux articles</a>
+    <img class="reader-cover" id="readerCover" style="display:none;">
+    <div class="reader-eyebrow" id="readerEyebrow"></div>
+    <div class="reader-title" id="readerTitle"></div>
+    <div class="reader-meta" id="readerMeta"></div>
+    <div class="reader-content" id="readerContent"></div>
+    <div class="share-row">
+      <a href="#" class="share-btn fb" id="shareFb" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H16.7V3.7c-.28-.04-1.25-.12-2.37-.12-2.35 0-3.95 1.43-3.95 4.06V10H8v3.1h2.38V21h3.12z"/></svg>Partager sur Facebook</a>
+      <button type="button" class="share-btn tk" id="shareTk"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82a4.28 4.28 0 01-3.14-1.4V15.5a5.5 5.5 0 11-4.72-5.44v2.6a2.9 2.9 0 102.42 2.86V2h2.44a4.28 4.28 0 003.6 3.63v2.19a6.7 6.7 0 01-.6-.02z"/></svg>Copier le lien pour TikTok</button>
+      <div class="share-note">TikTok ne permet pas le partage direct d'un lien web depuis un site — colle le lien copié dans ta bio ou la description de ta vidéo.</div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="headline-strip">
+    <a href="#" class="live-pill" id="livePill" style="display:none;" target="_blank"><span class="live-dot"></span><span id="livePillText">EN DIRECT</span></a>
+    <div class="headline-fade" id="headlineFade"></div>
+    <div class="headline-stats"><span><b id="statCount">0</b> vidéos</span><span><b id="statViews">0</b> vues</span><span><b id="statVisits">0</b> visites</span></div>
+    <button id="installBtn" style="display:none;flex-shrink:0;background:var(--rouge);color:#fff;border:none;padding:6px 12px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.5px;">📲 Installer l'app</button>
+    <div class="admin-badge" id="adminBadge" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connecté en tant qu'Admin</span></div>
+  </div>
+  <div class="masthead">
+    <div>
+      <div class="logo">CASH <span class="accent">SUR TABLE</span></div>
+      <div class="logo-sub">Média · Clips · Actualités</div>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-view="home">Accueil</button>
+      <button class="nav-btn" data-view="tendances">Tendances</button>
+      <button class="nav-btn" data-view="articles">Articles</button>
+      <button class="nav-btn" data-view="apropos">À propos</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="view active" id="view-home">
+    <div class="founder-banner" id="founderBanner">
+      <div class="founder-text">
+        <div class="founder-eyebrow">Le mot du fondateur</div>
+        <div class="founder-name">TRANSITION <span class="cash-accent">CASH</span> DE NOS MENTALITÉS</div>
+        <div class="founder-role">CASH SUR TABLE — Média · Clips · Actualités</div>
+      </div>
+      <div class="founder-photos" id="founderPhotos">
+        <img class="founder-photo-back" id="founderPhotoBack" alt="Fondateur de CASH SUR TABLE — salut">
+        <img class="founder-photo-front" id="founderPhotoFront" alt="Fondateur de CASH SUR TABLE — pointé">
+      </div>
+    </div>
+    <div class="content-with-sidebar">
+      <div class="content-main" id="homeMain">
+        <div class="hero" id="hero" data-block="hero"></div>
+        <div class="banner-space" id="bannerSpace" data-block="banner"></div>
+        <div class="panel-section" id="latestArticleSection" data-block="latestArticle" style="display:none;">
+          <div class="section-title">
+            <h1>Dernier article</h1>
+            <span class="count">Articles</span>
+          </div>
+          <div id="latestArticleCard"></div>
+        </div>
+        <div class="panel-section" data-block="grid">
+          <div class="section-title">
+            <h1>Toutes les publications</h1>
+            <span class="count" id="videoCount">0 vidéo</span>
+          </div>
+          <div class="grid" id="grid"></div>
+        </div>
+      </div>
+      <aside class="articles-sidebar" id="articlesSidebarHome">
+        <div class="sidebar-title"><span class="dot"></span>Articles récents</div>
+        <div class="sidebar-list" id="sidebarListHome"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-tendances">
+    <div class="content-with-sidebar">
+      <div class="content-main">
+        <div class="panel-section">
+          <div class="section-title">
+            <h1>Tendances</h1>
+            <span class="count" id="trendCount">0 vidéo</span>
+          </div>
+          <div class="grid" id="gridTrend"></div>
+        </div>
+      </div>
+      <aside class="articles-sidebar" id="articlesSidebarTrend">
+        <div class="sidebar-title"><span class="dot"></span>Articles récents</div>
+        <div class="sidebar-list" id="sidebarListTrend"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-articles">
+    <div class="panel-section">
+      <div class="section-title">
+        <h1>Articles</h1>
+        <span class="count" id="articleCount">0 article</span>
+      </div>
+      <div class="article-grid" id="articleGrid"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-apropos">
+    <div class="content-with-sidebar">
+      <div class="content-main">
+        <div class="apropos">
+          <span class="tag">Notre média</span>
+          <h1>CASH SUR TABLE</h1>
+          <p>CASH SUR TABLE est le média vidéo qui met en avant, en toute transparence, les coulisses, offres et actualités de l'entreprise — au format court, pensé pour être regardé partout, sur mobile comme sur desktop.</p>
+          <p>Chaque publication est sélectionnée par notre rédaction et republiée ici pour centraliser en un seul endroit tout ce qui se passe autour de la marque.</p>
+          <div class="contact-line">Une question, une suggestion de sujet ? <a href="mailto:contact@cashsurtable.com">contact@cashsurtable.com</a></div>
+        </div>
+      </div>
+      <aside class="articles-sidebar" id="articlesSidebarApropos">
+        <div class="sidebar-title"><span class="dot"></span>Articles récents</div>
+        <div class="sidebar-list" id="sidebarListApropos"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-admin">
+    <div class="admin-wrap">
+      <div class="admin-topbar">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <h1>Espace rédaction</h1>
+          <div class="admin-badge" style="display:flex;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg><span>Connecté en tant qu'Admin</span></div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
+      </div>
+
+      <div class="admin-kpis">
+        <div class="kpi-card"><div class="kpi-num" id="kpiVideos">0</div><div class="kpi-label">Vidéos</div></div>
+        <div class="kpi-card"><div class="kpi-num" id="kpiArticles">0</div><div class="kpi-label">Articles</div></div>
+        <div class="kpi-card"><div class="kpi-num" id="kpiViews">0</div><div class="kpi-label">Vues cumulées</div></div>
+        <div class="kpi-card"><div class="kpi-num" id="kpiVisits">0</div><div class="kpi-label">Visites du site</div></div>
+      </div>
+
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab-btn active" data-tab="videos">Publier une vidéo</button>
+        <button type="button" class="admin-tab-btn" data-tab="articles">Publier un article</button>
+        <button type="button" class="admin-tab-btn" data-tab="banners">Bannières</button>
+        <button type="button" class="admin-tab-btn" data-tab="live">Live</button>
+        <button type="button" class="admin-tab-btn" data-tab="storage">Stockage</button>
+        <button type="button" class="admin-tab-btn" data-tab="settings">Réglages</button>
+      </div>
+
+      <div class="admin-panel-group" id="tab-live">
+      <div class="panel" id="livePanel">
+        <h2>Direct (Live)</h2>
+        <div class="hint">Le direct se lance depuis l'outil natif de la plateforme choisie ; cette section publie juste l'annonce « EN DIRECT » sur le site.</div>
+
+        <div class="mode-switch" id="liveModeSwitch">
+          <button type="button" class="live-plat-btn active" data-plat="tiktok">TikTok</button>
+          <button type="button" class="live-plat-btn" data-plat="facebook">Facebook</button>
+          <button type="button" class="live-plat-btn" data-plat="instagram">Instagram</button>
+        </div>
+
+        <div class="field">
+          <button type="button" class="btn-publish" id="openLiveTool" style="background:var(--noir2);border:1px solid var(--line);">Ouvrir l'outil pour démarrer le direct ↗</button>
+        </div>
+
+        <div class="field">
+          <label>Lien du direct (une fois lancé, optionnel)</label>
+          <input type="text" id="liveUrl" placeholder="Collez ici le lien de votre direct en cours">
+        </div>
+
+        <button type="button" class="btn-publish" id="publishLive">Publier l'annonce « EN DIRECT »</button>
+        <button type="button" class="logout-btn" id="endLive" style="width:100%;margin-top:10px;display:none;">Terminer le direct</button>
+        <div class="msg" id="liveMsg"></div>
+      </div>
+      </div>
+      <div class="admin-panel-group active" id="tab-videos">
+
+      <div class="panel">
+        <h2 id="formTitle">Publier une vidéo</h2>
+        <div class="hint">Collez un lien (TikTok, Instagram, Facebook…) ou importez un fichier directement.</div>
+
+        <div class="edit-banner" id="editBanner" style="display:none;">
+          <span>Modification d'une publication existante</span>
+          <button type="button" id="cancelEdit">Annuler</button>
+        </div>
+
+        <div class="mode-switch">
+          <button type="button" class="mode-btn active" data-mode="link">Lien</button>
+          <button type="button" class="mode-btn" data-mode="upload">Importer un fichier</button>
+        </div>
+        <form id="form">
+          <div class="field" id="fieldLink">
+            <label>Lien de la vidéo</label>
+            <input type="text" id="videoUrl" placeholder="https://www.tiktok.com/@compte/video/... ou instagram.com/reel/... ou facebook.com/...">
+            <div class="platform-tag" id="platformTag"></div>
+          </div>
+          <div class="field" id="fieldCover">
+            <label>Image de couverture (optionnelle)</label>
+            <label class="file-drop" id="coverDropZone">
+              Cliquez pour ajouter une image d'aperçu (sinon récupérée automatiquement quand c'est possible)
+              <input type="file" id="coverInput" accept="image/*">
+              <div class="file-name" id="coverName"></div>
+            </label>
+          </div>
+          <div class="field" id="fieldUpload" style="display:none;">
+            <label>Fichier vidéo</label>
+            <label class="file-drop" id="dropZone">
+              Cliquez pour choisir un fichier vidéo (jusqu'à 500 Mo)
+              <input type="file" id="fileInput" accept="video/*">
+              <div class="file-name" id="fileName"></div>
+            </label>
+            <div class="file-note">Durée et image d'aperçu détectées automatiquement.</div>
+          </div>
+          <div class="field" id="fieldDownload" style="display:none;">
+            <label>Téléchargement par les visiteurs</label>
+            <div class="orient-switch">
+              <button type="button" class="dl-btn active" data-dl="yes">Autorisé</button>
+              <button type="button" class="dl-btn" data-dl="no">Non autorisé</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nom du rédacteur</label>
+            <input type="text" id="author" placeholder="Ex : Ida M.">
+          </div>
+          <div class="field">
+            <label>Titre de la vidéo</label>
+            <input type="text" id="title" placeholder="Ex : Coulisses de la vente flash CASH SUR TABLE">
+          </div>
+          <div class="field">
+            <label>Description (affichée sous le titre)</label>
+            <textarea id="description" rows="3" placeholder="Contexte, résumé du contenu de la vidéo…" style="width:100%;background:var(--noir2);border:1px solid var(--line);color:var(--blanc);padding:12px 14px;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;resize:vertical;"></textarea>
+          </div>
+          <div class="field">
+            <label>Format d'affichage</label>
+            <div class="orient-switch">
+              <button type="button" class="or-btn active" data-or="portrait">Portrait</button>
+              <button type="button" class="or-btn" data-or="landscape">Paysage</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Statut</label>
+            <div class="status-switch" id="statusSwitch">
+              <button type="button" class="status-btn" data-status="draft">Brouillon</button>
+              <button type="button" class="status-btn" data-status="scheduled">Programmer</button>
+              <button type="button" class="status-btn active" data-status="published">Publier maintenant</button>
+            </div>
+            <div class="status-hint" id="statusHint">La vidéo sera visible sur le site immédiatement après publication.</div>
+          </div>
+          <div class="field" id="fieldScheduleDate" style="display:none;">
+            <label>Date et heure de publication programmée</label>
+            <input type="datetime-local" id="publishedAt">
+          </div>
+          <button type="submit" class="btn-publish" id="submitBtn">Publier la vidéo</button>
+          <div class="msg" id="formMsg"></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Vidéos</h2>
+        <div class="admin-filters" id="videoFilters">
+          <button type="button" class="active" data-filter="all">Toutes</button>
+          <button type="button" data-filter="draft">Brouillons</button>
+          <button type="button" data-filter="scheduled">Programmées</button>
+          <button type="button" data-filter="published">Publiées</button>
+        </div>
+        <div class="admin-list" id="adminList"></div>
+      </div>
+      </div>
+
+      <div class="admin-panel-group" id="tab-articles">
+      <div class="panel">
+        <h2 id="articleFormTitle">Rédiger un article</h2>
+        <div class="hint">Rédigez un article ; il pourra être partagé sur Facebook, ou son lien copié pour TikTok.</div>
+
+        <div class="edit-banner" id="articleEditBanner" style="display:none;">
+          <span>Modification d'un article existant</span>
+          <button type="button" id="articleCancelEdit">Annuler</button>
+        </div>
+
+        <form id="articleForm">
+          <div class="field">
+            <label>Image de couverture (optionnelle)</label>
+            <label class="file-drop" id="articleCoverDropZone">
+              Cliquez pour ajouter une image d'illustration
+              <input type="file" id="articleCoverInput" accept="image/*">
+              <div class="file-name" id="articleCoverName"></div>
+            </label>
+          </div>
+          <div class="field">
+            <label>Nom du rédacteur</label>
+            <input type="text" id="articleAuthor" placeholder="Ex : Ida M.">
+          </div>
+          <div class="field">
+            <label>Titre de l'article</label>
+            <input type="text" id="articleTitle" placeholder="Ex : Ce qui change ce trimestre">
+          </div>
+          <div class="field">
+            <label>Résumé (affiché dans la liste des articles)</label>
+            <textarea id="articleExcerpt" rows="2" placeholder="Une ou deux phrases d'accroche…" style="width:100%;background:var(--noir2);border:1px solid var(--line);color:var(--blanc);padding:12px 14px;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;resize:vertical;"></textarea>
+          </div>
+          <div class="field">
+            <label>Contenu de l'article</label>
+            <textarea id="articleContent" rows="10" placeholder="Rédigez ici le corps complet de l'article…" style="width:100%;background:var(--noir2);border:1px solid var(--line);color:var(--blanc);padding:12px 14px;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;resize:vertical;"></textarea>
+          </div>
+          <div class="field">
+            <label>Statut</label>
+            <div class="status-switch" id="articleStatusSwitch">
+              <button type="button" class="status-btn" data-status="draft">Brouillon</button>
+              <button type="button" class="status-btn" data-status="scheduled">Programmer</button>
+              <button type="button" class="status-btn active" data-status="published">Publier maintenant</button>
+            </div>
+            <div class="status-hint" id="articleStatusHint">L'article sera visible sur le site immédiatement après publication.</div>
+          </div>
+          <div class="field" id="fieldArticleScheduleDate" style="display:none;">
+            <label>Date et heure de publication programmée</label>
+            <input type="datetime-local" id="articlePublishedAt">
+          </div>
+          <button type="submit" class="btn-publish" id="articleSubmitBtn">Publier l'article</button>
+          <div class="msg" id="articleFormMsg"></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Articles</h2>
+        <div class="admin-filters" id="articleFilters">
+          <button type="button" class="active" data-filter="all">Tous</button>
+          <button type="button" data-filter="draft">Brouillons</button>
+          <button type="button" data-filter="scheduled">Programmés</button>
+          <button type="button" data-filter="published">Publiés</button>
+        </div>
+        <div class="admin-list" id="articleAdminList"></div>
+      </div>
+      </div>
+
+      <div class="admin-panel-group" id="tab-banners">
+      <div class="panel">
+        <h2>Publier une bannière</h2>
+        <div class="hint">La bannière s'affiche en haut de la page d'accueil, sous le mot du fondateur. Vous pouvez en publier plusieurs : elles défileront automatiquement.</div>
+
+        <form id="bannerForm">
+          <div class="field">
+            <label>Image de la bannière</label>
+            <label class="file-drop" id="bannerImageDropZone">
+              Cliquez pour ajouter l'image de la bannière
+              <input type="file" id="bannerImageInput" accept="image/*">
+              <div class="file-name" id="bannerImageName"></div>
+            </label>
+          </div>
+          <div class="field">
+            <label>Lien (optionnel)</label>
+            <input type="text" id="bannerLink" placeholder="https://... (ouvert si l'utilisateur clique sur la bannière)">
+          </div>
+          <button type="submit" class="btn-publish" id="bannerSubmitBtn">Publier la bannière</button>
+          <div class="msg" id="bannerFormMsg"></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Bannières publiées</h2>
+        <div class="admin-list" id="bannerAdminList"></div>
+      </div>
+      </div>
+
+      <div class="admin-panel-group" id="tab-storage">
+      <div class="panel">
+        <h2>Stockage vidéos — diagnostic</h2>
+        <div class="hint">Vérifie que le bucket "videos" est bien configuré sur Supabase pour que tes vidéos restent en ligne définitivement et soient téléchargeables sur tous les appareils.</div>
+        <button type="button" class="logout-btn" id="checkVideoBucketBtn" style="margin-bottom:6px;">Tester le bucket "videos"</button>
+        <div class="msg" id="videoBucketMsg"></div>
+      </div>
+      <div class="panel">
+        <h2>Stockage</h2>
+        <div class="hint">Un espace pour déposer, ranger et retrouver n'importe quel fichier (document, image, archive…) — indépendant des vidéos et articles.</div>
+        <label class="file-drop" id="storageDropZone">
+          Cliquez pour déposer un fichier (jusqu'à 500 Mo)
+          <input type="file" id="storageFileInput">
+          <div class="file-name" id="storageFileName"></div>
+        </label>
+        <div class="msg" id="storageMsg"></div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title" style="margin-bottom:16px;">
+          <h2 style="font-size:20px;">Fichiers stockés</h2>
+          <span class="count" id="storageCount">0 fichier · 0 Mo</span>
+        </div>
+        <div class="admin-list" id="storageList"></div>
+      </div>
+      </div>
+
+      <div class="admin-panel-group" id="tab-settings">
+      <div class="panel">
+        <h2>Emplacement des sections — Accueil</h2>
+        <div class="hint">Change l'ordre d'affichage des blocs de la page d'accueil avec les flèches.</div>
+        <div class="admin-list" id="blockOrderList"></div>
+      </div>
+      <div class="panel">
+        <h2>Emplacement des onglets — Menu</h2>
+        <div class="hint">Change l'ordre des onglets du menu de navigation en haut du site.</div>
+        <div class="admin-list" id="navOrderList"></div>
+      </div>
+      <div class="panel">
+        <h2>Identifiants de connexion admin</h2>
+        <div class="hint">Change l'email et le mot de passe utilisés pour accéder à cet espace admin. ⚠️ Cette protection reste basique (vérification côté navigateur) : elle décourage les visiteurs curieux mais ne remplace pas une vraie authentification serveur. Ne réutilisez pas un mot de passe important ailleurs.</div>
+        <div class="field">
+          <label>Email de connexion</label>
+          <input type="email" id="setAdminEmail" placeholder="admin@example.com">
+        </div>
+        <div class="field">
+          <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+          <input type="password" id="setAdminPw1" placeholder="••••••••">
+        </div>
+        <div class="field">
+          <label>Confirmer le nouveau mot de passe</label>
+          <input type="password" id="setAdminPw2" placeholder="••••••••">
+        </div>
+        <button type="button" class="btn-publish" id="saveCredsBtn">Mettre à jour les identifiants</button>
+        <div class="msg" id="credsMsg"></div>
+      </div>
+      <div class="panel">
+        <h2>Identité du site</h2>
+        <div class="hint">Ces informations sont affichées sur le site (sous-titre, réseaux sociaux, contact).</div>
+        <div class="field">
+          <label>Sous-titre du site</label>
+          <input type="text" id="setLogoSub" placeholder="Média · Clips · Actualités">
+        </div>
+        <div class="field">
+          <label>Email de contact</label>
+          <input type="text" id="setContactEmail" placeholder="contact@cashsurtable.com">
+        </div>
+        <div class="field">
+          <label>Lien TikTok</label>
+          <input type="text" id="setTiktokUrl" placeholder="https://www.tiktok.com/@...">
+        </div>
+        <div class="field">
+          <label>Lien Facebook</label>
+          <input type="text" id="setFacebookUrl" placeholder="https://www.facebook.com/...">
+        </div>
+        <div class="field">
+          <label>Lien Instagram</label>
+          <input type="text" id="setInstagramUrl" placeholder="https://www.instagram.com/...">
+        </div>
+        <button type="button" class="btn-publish" id="saveSettingsBtn">Enregistrer les réglages</button>
+        <div class="msg" id="settingsMsg"></div>
+      </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-social">
+    <a href="https://www.tiktok.com/@cashsurtable" target="_blank" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82a4.28 4.28 0 01-3.14-1.4V15.5a5.5 5.5 0 11-4.72-5.44v2.6a2.9 2.9 0 102.42 2.86V2h2.44a4.28 4.28 0 003.6 3.63v2.19a6.7 6.7 0 01-.6-.02z"/></svg></a>
+    <a href="https://www.facebook.com/cashsurtable" target="_blank" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H16.7V3.7c-.28-.04-1.25-.12-2.37-.12-2.35 0-3.95 1.43-3.95 4.06V10H8v3.1h2.38V21h3.12z"/></svg></a>
+    <a href="https://www.instagram.com/cashsurtable" target="_blank" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg></a>
+  </div>
+  <div class="footer-bottom">
+    CASH SUR TABLE <span class="accent">·</span> MÉDIA EN LIGNE <span class="accent">·</span> 2026
+    <a href="#" class="admin-link" id="adminLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Espace rédaction</a>
+  </div>
+</footer>
+
+<!-- ============================================================
+     SUPABASE — stockage partagé, valable sur tout hébergement, gratuit sans carte bancaire
+     ============================================================
+     1) Va sur https://supabase.com → "Start your project" → connecte-toi (GitHub ou email).
+     2) "New project" → donne un nom, un mot de passe de base de données (à garder de côté,
+        pas besoin de le retenir pour la suite), choisis une région proche de toi → "Create
+        new project". Attends 1-2 minutes que le projet se prépare.
+     3) Dans le menu de gauche, va sur l'icône "SQL Editor" → "New query" → colle ceci → "Run" :
+          create table kv (
+            key text primary key,
+            value text
+          );
+          alter table kv enable row level security;
+          create policy "public read" on kv for select using (true);
+          create policy "public write" on kv for insert with check (true);
+          create policy "public update" on kv for update using (true);
+     4) Dans le menu de gauche, va sur "Storage" → "New bucket" → nom : videos → coche
+        "Public bucket" → "Create bucket". Répète l'opération pour créer un second bucket
+        nommé : images (coche aussi "Public bucket"), puis un troisième nommé : files
+        (coche aussi "Public bucket") — ce dernier sert à l'espace "Stockage" de l'admin,
+        pour y déposer n'importe quel type de fichier.
+     5) Toujours dans Storage, pour CHAQUE bucket (videos, images et files) : clique sur le
+        bucket → onglet "Policies" → "New policy" → "For full customization" → nom libre →
+        coche les 4 actions (SELECT, INSERT, UPDATE, DELETE) → cible "anon" et
+        "authenticated" → USING/WITH CHECK laisse "true" → "Save policy".
+     6) Dans le menu de gauche, icône ⚙️ "Project Settings" → "API". Copie l'URL du projet
+        ("Project URL") et la clé "anon public" ("Project API keys").
+     7) Colle ces deux valeurs ci-dessous à la place de celles d'exemple.
+     ⚠️ Ces règles ouvrent la lecture/écriture à tout le monde (comme le formulaire
+     d'admin protégé seulement par mot de passe côté client aujourd'hui). C'est suffisant
+     pour un petit site perso, une vraie sécurité nécessiterait l'authentification Supabase.
+-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+
+
+
+<script src="app.js"></script>
+</body>
+</html>
